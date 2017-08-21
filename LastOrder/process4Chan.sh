@@ -48,7 +48,9 @@ do
     done < <(curl -sL -z "$if_modified_since" -D "$header_file" http://a.4cdn.org/b/threads.json | jq -M . |  grep -e "no" -e "last_modified" | tr -d ' ' | cut -d ':' -f2 | paste -d "" - -)
 
     # Grep the Last-Modified field out of the catalog grab
-    if_modified_since=$(grep "Last-Modified" "$header_file" | cut -d ' ' -f 2-)
+    last_modified["$board"]=$(grep "Last-Modified" "$header_file" | cut -d ' ' -f 2-)
+
+    # Delete our temporary file so we can reuse it
     rm "$header_file"
 
   done
