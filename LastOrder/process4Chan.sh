@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Come on, give us at least one argument
-if [ $# -eq 0 ];then
+if [ $# -eq 0 ]; then
     echo "No arguments supplied; please supply at least one board name"
     exit 1
 fi
@@ -9,7 +9,7 @@ fi
 # Check all arguments to make sure they are valid
 invalid_board=$(./isValidBoardNames.sh $@)
 if [ $? -eq 1 ]; then
-    echo "$invalid_board is invalid"
+    echo "$invalid_board is an invalid board name"
     exit 1
 fi
 
@@ -19,11 +19,8 @@ header_file=$(mktemp -u)
 # Declare an associative array to store Last-Modified data
 declare -A last_modified
 
-# We'll start If-Modified-Since right now, then grep it out of the header_file later
-#if_modified_since=$(date +%a,\ %e\ %b\ %Y\ %H:%M:%S\ GMT)
-
-# Declare an associative array to store all this shit into
-declare -A post_cache
+# Declare an associative array to store last post a thread contained
+declare -A last_post
 
 # Start main loop
 while true
@@ -32,20 +29,34 @@ do
   for board in "$@"
   do
 
-    # If we have no Last-Modified data, set it to our current time
+    # If we have no Last-Modified data, set it to 0 and watch curl struggle to use it
     if [[ ! -v last_modified["$board"] ]]; then
-
-      # God I hate Date and Is-Modified-Since; couldn't they have coordinated?
-      last_modified["$board"]=$(date +%a,\ %e\ %b\ %Y\ %H:%M:%S\ GMT)
+      last_modified["$board"]=0
     fi
 
+    # Last modified, put into a string to avoid rewrite issues
+    LAST=${last_modified["$board"]}
+
     # Grab all threads one by one
-    while IFS=, read thread_url last_modified; do
+    while IFS=, read thread_num modified_since; do
 
-      thread=$(curl -sL http://a.4cdn.org/b/thread/$thread_url.json)
+      # If we have no Last-Modified data for the thread, set it to 0
+      if [[ ! -v last_modified["$board-$thread_num"] ]]; then
+        last_modified["$board-$thread-num"]=0
+      fi
 
-    # Get all threads on board from catalog
-    done < <(curl -sL -z "$if_modified_since" -D "$header_file" http://a.4cdn.org/b/threads.json | jq -M . |  grep -e "no" -e "last_modified" | tr -d ' ' | cut -d ':' -f2 | paste -d "" - -)
+      # If Last-Modified hasn't changed, keep on walkin'
+      if [[ last_modified["$board-$thread_num"] -eq $modified_since ]]; then
+        continue
+      fi
+
+      echo "Time to update!"
+      #thread=$(curl -sL http://a.4cdn.org/$board/thread/$thread_num.json)
+
+      last_modified["$board-$thread_num"]=$modified_since
+
+    # Get all threads on board from catalog, in reverse order
+    done < <(curl -sL -z "$LAST" -D "$header_file" http://a.4cdn.org/$board/threads.json | jq -M . |  grep -e "no" -e "last_modified" | tr -d ' ' | cut -d ':' -f2 | paste -d "" - -)
 
     # Grep the Last-Modified field out of the catalog grab
     last_modified["$board"]=$(grep "Last-Modified" "$header_file" | cut -d ' ' -f 2-)
@@ -53,5 +64,7 @@ do
     # Delete our temporary file so we can reuse it
     rm "$header_file"
 
+    echo "$board checked!"
+    sleep 5
   done
 done
