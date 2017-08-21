@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-if [ $# -eq 0 ];then
+# We need at least one argument!
+if [ $# -eq 0 ]; then
     echo "No arguments supplied; please supply at least one board name"
     exit 1
 fi
@@ -20,7 +21,8 @@ done < <(curl -sL http://a.4cdn.org/boards.json | jq -M . | grep "\"board\":" | 
 # Check all arguments against our board_names
 for arg in "$@"
 do
-    [[ ! -v board_names["$arg"] ]] && echo "$arg is not a valid board" && exit 1
+    # Found invalid board name
+    [[ ! -v board_names["$arg"] ]] && exit 1
 done
 
 # All boards valid!
