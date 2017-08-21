@@ -22,7 +22,7 @@ done < <(curl -sL http://a.4cdn.org/boards.json | jq -M . | grep "\"board\":" | 
 for arg in "$@"
 do
     # Found invalid board name
-    [[ ! -v board_names["$arg"] ]] && exit 1
+    [[ ! -v board_names["$arg"] ]] && echo "$arg" && exit 1
 done
 
 # All boards valid!
