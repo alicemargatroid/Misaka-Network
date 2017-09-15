@@ -18,12 +18,22 @@ do
 # Actually call out to 4chan and grab all the boards
 done < <(curl -sL http://a.4cdn.org/boards.json | jq -M . | grep "\"board\":" | cut -d':' -f2 | tr -d ' [:punct:]')
 
+# If no action occurs, we exit 0
+EXIT=0
+
 # Check all arguments against our board_names
 for arg in "$@"
 do
     # Found invalid board name
-    [[ ! -v board_names["$arg"] ]] && echo "$arg" && exit 1
+    if [[ ! -v board_names["$arg"] ]]; then
+        if [[ $EXIT -eq 0 ]]; then
+	    EXIT=1
+            printf "$arg"
+	else
+            printf ",$arg"
+        fi
+    fi
 done
 
-# All boards valid!
-exit 0
+# Exit depending on if all boards are valid
+exit $EXIT

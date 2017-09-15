@@ -38,11 +38,11 @@ do
     LAST=${last_modified["$board"]}
 
     # Grab all threads one by one
-    while IFS=, read thread_num modified_since; do
-
+    while IFS=, read thread_num modified_since
+    do
       # If we have no Last-Modified data for the thread, set it to 0
       if [[ ! -v last_modified["$board-$thread_num"] ]]; then
-        last_modified["$board-$thread-num"]=0
+        last_modified["$board-$thread_num"]=0
       fi
 
       # If Last-Modified hasn't changed, keep on walkin'
@@ -51,7 +51,7 @@ do
       fi
 
       echo "Time to update!"
-      #thread=$(curl -sL http://a.4cdn.org/$board/thread/$thread_num.json)
+      thread=$(curl -sL http://a.4cdn.org/$board/thread/$thread_num.json | jq -M .)
 
       last_modified["$board-$thread_num"]=$modified_since
 
@@ -65,6 +65,6 @@ do
     rm "$header_file"
 
     echo "$board checked!"
-    sleep 5
+    sleep 10
   done
 done
