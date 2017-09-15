@@ -6,34 +6,14 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-# Create associative array so we can look up the board names
-declare -A board_names
+VALID=$(curl -sL http://a.4cdn.org/boards.json | jq -M . | grep "\"board\":" | cut -d':' -f2 | tr -d ' [:punct:]')
+POSSIBLE=$(echo "$@" | tr ' ' '\n' | sort -u)
 
-# Read all the board names into the board_names associative array
-while read board_name
-do
-    # Set each board name into our board_names associative array
-    board_names["$board_name"]="$board_name"
+OUTPUT=$(comm -23 <(echo "$POSSIBLE") <(echo "$VALID") | tr '\n' ',' | sed 's/.$//')
 
-# Actually call out to 4chan and grab all the boards
-done < <(curl -sL http://a.4cdn.org/boards.json | jq -M . | grep "\"board\":" | cut -d':' -f2 | tr -d ' [:punct:]')
+if [[ -z "$OUTPUT" ]]; then
+    exit 0
+fi
 
-# If no action occurs, we exit 0
-EXIT=0
-
-# Check all arguments against our board_names
-for arg in "$@"
-do
-    # Found invalid board name
-    if [[ ! -v board_names["$arg"] ]]; then
-        if [[ $EXIT -eq 0 ]]; then
-	    EXIT=1
-            printf "$arg"
-	else
-            printf ",$arg"
-        fi
-    fi
-done
-
-# Exit depending on if all boards are valid
-exit $EXIT
+echo "$OUTPUT"
+exit 1
