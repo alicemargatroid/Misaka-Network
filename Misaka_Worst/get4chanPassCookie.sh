@@ -14,11 +14,14 @@ if [ -z "$2" ] ; then
 fi
 PIN=$2
 
-curl 'https://sys.4chan.org/auth' \
+TOKEN=$(curl 'https://sys.4chan.org/auth' \
     -H 'Origin: https://sys.4chan.org' \
     -H 'Cache-Control: max-age=0' \
     -H 'Referer: https://sys.4chan.org/auth' \
     --form "act=do_login" \
     --form "id=$ID" \
     --form "pin=$PIN" \
-    --silent --output /dev/null --cookie-jar - | grep pass_id | cut -d$'\t' -f7
+    --silent --output /dev/null --cookie-jar - | grep pass_id | cut -d$'\t' -f7)
+
+echo "pass_id=$TOKEN; pass_enabled=1;"
+

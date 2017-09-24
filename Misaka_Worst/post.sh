@@ -12,13 +12,13 @@ cat <<EOF
     Make a post to 4chan with optional arguments
 
     Feature switches:
-    --cookie, -p	Cookies to pass in	(required)
-    --thread, -t        Thread to post in       (required)
-    --board, -b		Board to post to	(default b)
+    --cookie, -p    Cookies to pass in  (required)
+    --thread, -t    Thread to post in   (required)
+    --board, -b     Board to post to    (default b)
 
-    --comment, -c       Comment to post 	(optional)
-    --email, -e		Email to post		(optional)
-    --file, -f		File to post		(optional)
+    --comment, -c   Comment to post     (optional)
+    --email, -e     Email to post       (optional)
+    --file, -f      File to post        (optional)
 
 EOF
 
